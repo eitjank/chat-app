@@ -7,6 +7,7 @@ import io.github.eitjank.chatapp.exception.UserNotFoundException;
 import io.github.eitjank.chatapp.repository.MessageRepository;
 import io.github.eitjank.chatapp.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -18,20 +19,31 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final MessageRepository messageRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    UserService(UserRepository userRepository, MessageRepository messageRepository) {
+    UserService(UserRepository userRepository, MessageRepository messageRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.messageRepository = messageRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
-    public User registerUser(String username) {
+    public User registerUser(String username, String rawPassword, String roleString) {
         if (userRepository.findByUsername(username).isPresent()) {
             throw new UserAlreadyExistsException("User already exists");
         }
+
+        User.Role role;
+        try {
+            role = User.Role.valueOf(roleString.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid role: must be USER or ADMIN");
+        }
+
         User user = new User();
         user.setUsername(username);
-        user.setRole(User.Role.USER);
+        user.setPassword(passwordEncoder.encode(rawPassword));
+        user.setRole(role);
         return userRepository.save(user);
     }
 

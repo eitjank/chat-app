@@ -1,6 +1,7 @@
 package io.github.eitjank.chatapp.controller;
 
 import io.github.eitjank.chatapp.dto.UserRequest;
+import io.github.eitjank.chatapp.dto.UserResponse;
 import io.github.eitjank.chatapp.dto.UserStatsResponse;
 import io.github.eitjank.chatapp.entity.User;
 import io.github.eitjank.chatapp.service.UserService;
@@ -8,12 +9,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/admin")
+@PreAuthorize("hasRole('ADMIN')")
 @Tag(name = "Admin", description = "Admin operations like user registration, deletion, and statistics")
 public class AdminController {
 
@@ -25,9 +28,10 @@ public class AdminController {
 
     @PostMapping("/users")
     @Operation(summary = "Register new user", description = "Registers a new user with the provided username")
-    public ResponseEntity<User> registerUser(@Valid @RequestBody UserRequest request) {
-        User newUser = userService.registerUser(request.getUsername());
-        return ResponseEntity.ok(newUser);
+    public ResponseEntity<UserResponse> registerUser(@Valid @RequestBody UserRequest request) {
+        User newUser = userService.registerUser(request.getUsername(), request.getPassword(), request.getRole());
+        UserResponse response = new UserResponse(newUser.getId(), newUser.getUsername(), newUser.getRole().name());
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/users/{username}")

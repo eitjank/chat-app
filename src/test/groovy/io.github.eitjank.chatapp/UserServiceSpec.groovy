@@ -7,6 +7,7 @@ import io.github.eitjank.chatapp.exception.UserNotFoundException
 import io.github.eitjank.chatapp.repository.MessageRepository
 import io.github.eitjank.chatapp.repository.UserRepository
 import io.github.eitjank.chatapp.service.UserService
+import org.springframework.security.crypto.password.PasswordEncoder
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -16,9 +17,10 @@ class UserServiceSpec extends Specification {
 
     UserRepository userRepository = Mock()
     MessageRepository messageRepository = Mock()
+    PasswordEncoder passwordEncoder = Mock()
 
     @Subject
-    UserService userService = new UserService(userRepository, messageRepository)
+    UserService userService = new UserService(userRepository, messageRepository, passwordEncoder)
 
     def "registerUser should successfully create new user when username doesn't exist"() {
         given: "a username that doesn't exist"
@@ -26,7 +28,7 @@ class UserServiceSpec extends Specification {
         User savedUser = new User(id: 1L, username: username, role: User.Role.USER)
 
         when: "registering the user"
-        User result = userService.registerUser(username)
+        User result = userService.registerUser(username, "password123", "USER")
 
         then: "repository is checked for existing user"
         1 * userRepository.findByUsername(username) >> Optional.empty()
@@ -46,7 +48,7 @@ class UserServiceSpec extends Specification {
         User existingUser = new User(id: 1L, username: username, role: User.Role.USER)
 
         when: "trying to register the user"
-        userService.registerUser(username)
+        userService.registerUser(username, "password123", "USER")
 
         then: "repository finds existing user"
         1 * userRepository.findByUsername(username) >> Optional.of(existingUser)

@@ -1,6 +1,5 @@
 package io.github.eitjank.chatapp.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,8 +9,8 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class MessageRequest {
-    @NotBlank(message = "Message content must not be empty")
-    private String content;
-
+public class UserResponse {
+    private Long id;
+    private String username;
+    private String role;
 }
